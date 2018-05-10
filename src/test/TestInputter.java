@@ -30,17 +30,26 @@ public class TestInputter extends Thread {
             String request = splitted[1];
             testEntryList.add(new TestEntry(Long.parseLong(milliTimeString), request));
         }
+        scanner.close();
+    }
+    public static PipedInputStream getStream(String scriptAddr) throws IOException {
+        PipedInputStream pipedInputStream = new PipedInputStream();
+        PipedOutputStream pipedOutputStream = new PipedOutputStream();
+        pipedInputStream.connect(pipedOutputStream);
+        TestInputter testInputter = new TestInputter(scriptAddr, pipedOutputStream);
+        testInputter.start();
+        return pipedInputStream;
     }
     public void run() {
-        long startingMilliTime = System.currentTimeMillis();
         for (int i = 0; i < testEntryList.size(); i++) {
-            while (System.currentTimeMillis() - startingMilliTime < testEntryList.get(i).milliTime) {
+            while (Global.getRelativeTime() < testEntryList.get(i).milliTime) {
                 yield();
             }
             try {
                 outputStream.write((testEntryList.get(i).inputString + "\n").getBytes("UTF-8"));
+                outputStream.flush();
                 System.out.println("send new request: " +
-                        testEntryList.get(i).inputString + " @" + (System.currentTimeMillis() - startingMilliTime));
+                        testEntryList.get(i).inputString + " @" + (Global.getRelativeTime()));
             } catch (Exception e) {
                 e.printStackTrace();
             }

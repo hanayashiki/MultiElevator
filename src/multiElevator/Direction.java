@@ -1,5 +1,5 @@
 package multiElevator;
 
 public enum Direction {
-    UP, DOWN
+    UP, DOWN, STILL
 }

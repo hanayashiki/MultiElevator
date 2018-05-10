@@ -11,7 +11,12 @@ public class Request {
     private int floor;
     private int elevatorId;
     private long timeArrive;
+    private boolean end;
     String originString;
+
+    Request() {
+
+    }
 
     Request(Type type, int floor, Direction direction, long timeArrive, String originString) {
         assert type == Type.FR;
@@ -31,12 +36,26 @@ public class Request {
         this.originString = originString;
     }
 
+    public static Request endSignal() {
+        Request endSignal = new Request();
+        endSignal.end = true;
+        return endSignal;
+    }
+
     public Type getType() {
         return type;
     }
 
     public long getTimeArrive() {
         return timeArrive;
+    }
+
+    public int getFloor() {
+        return floor;
+    }
+
+    public boolean isEnd() {
+        return end;
     }
 
     // type == FR
@@ -75,5 +94,6 @@ public class Request {
         }
         return "Untyped";
     }
+
 }
 

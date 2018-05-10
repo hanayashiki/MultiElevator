@@ -14,6 +14,10 @@ public class Parser {
         Matcher floorRequestMatcher = floorRequestPattern.matcher(trimmedInput);
         Matcher elevatorRequestMatcher = elevatorRequestPattern.matcher(trimmedInput);
 
+        if (trimmedInput.equals("END")) {
+            return null;
+        }
+
         if (!floorRequestMatcher.matches() && !elevatorRequestMatcher.matches()) {
             throw new InputException(requestString);
         }
