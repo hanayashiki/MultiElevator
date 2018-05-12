@@ -17,7 +17,7 @@ public class SchedulerTest {
         for (int i = 0; i < Config.ELEVATOR_COUNT; i++) {
             elevatorList.add(new Elevator(i + 1, floorButtonList));
         }
-        PipedInputStream pipedInputStream = TestInputter.getStream("src/test/tests/test_same_ER.txt");
+        PipedInputStream pipedInputStream = TestInputter.getStream("src/test/tests/test_not_enable.txt");
         BlockingQueue<Request> requestQueue = new ArrayBlockingQueue<Request>(1024, true);
         RequestScanner requestScanner = new RequestScanner(pipedInputStream, requestQueue);
 

@@ -45,4 +45,9 @@ public class ElevatorRequestList {
     public boolean isEmpty() {
         return requestList.isEmpty();
     }
+    public Request getHead() {
+        synchronized (this) {
+            return requestList.get(0);
+        }
+    }
 }

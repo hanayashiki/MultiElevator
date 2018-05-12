@@ -65,6 +65,11 @@ public class Scheduler extends Thread {
     }
 
     private boolean asssignFloorRequest(Request newRequest) {
+//        // For test
+//        synchronized (elevatorList.get(0)) {
+//            elevatorList.get(0).pickUp(newRequest);
+//        }
+//        return false;
         List<Elevator> canLift = new ArrayList<>(elevatorList.size());
         // 1. check if any elevator can pick up
         for (Elevator elevator : elevatorList) {
@@ -125,6 +130,7 @@ public class Scheduler extends Thread {
                 boolean isSameDirection = elevator.getCurrentDirection() == request.getDirection();
                 boolean isBetweenCurrentPositionAndTargetPosition;
                 if (elevator.getCurrentDirection() == Direction.UP) {
+                    System.out.println(elevator.getCurrentPosition() + ", " + request.getFloor());
                     isBetweenCurrentPositionAndTargetPosition =
                             Utils.doubleLess(elevator.getCurrentPosition(),  request.getFloor()) &&
                                     Utils.doubleLessEqual(request.getFloor(), elevator.getCurrentTarget());

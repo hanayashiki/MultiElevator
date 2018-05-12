@@ -15,6 +15,7 @@ public class Elevator extends Thread {
     private Direction currentDirection = Direction.STILL;
     private Status status = Status.MOVING;
     private long unloadingTime = -1;
+    private long lastSimulatingTime = System.nanoTime();
 
     private int currentTarget = -1;
 
@@ -62,7 +63,8 @@ public class Elevator extends Thread {
                 // System.out.println(1.0 * elapsedTime / 1e6);
                 long nano = System.nanoTime();
                 simulate(elapsedTime + simulateCost);
-                simulateCost = ((System.nanoTime() - nano) + 4 * simulateCost) / 5; // learning simulateCost on current machine
+                lastSimulatingTime = System.nanoTime();
+                simulateCost = ((lastSimulatingTime - nano) + 4 * simulateCost) / 5; // learning simulateCost on current machine
             }
         } catch (EndOfRequestsException ee) {
         }
@@ -119,7 +121,10 @@ public class Elevator extends Thread {
                     ret = true;
                 }
             }
-            // TODO: if have finished main request
+            if (floor == this.currentTarget && !this.elevatorRequestList.isEmpty()) {
+                Request lastUnfinishedRequest = this.elevatorRequestList.getHead();
+                this.setMain(lastUnfinishedRequest);
+            }
         }
         return ret;
     }
@@ -159,7 +164,9 @@ public class Elevator extends Thread {
     }
 
     synchronized public double getCurrentPosition() {
-        return currentPosition;
+        long timeNotConsiderd = System.nanoTime() - lastSimulatingTime + 2400000;
+        return currentPosition +
+                Utils.directionToSign(this.currentDirection) * (timeNotConsiderd) / 1e9 / Config.TIME_PER_FLOOR;
     }
 
     synchronized public Direction getCurrentDirection() {
