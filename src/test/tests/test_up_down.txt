@@ -1,0 +1,1 @@
+1000:(FR, 1, UP);(FR, 5, UP);(FR, 5, DOWN);END

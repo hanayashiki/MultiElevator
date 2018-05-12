@@ -24,12 +24,14 @@ public class Elevator extends Thread {
     private ElevatorRequestList elevatorRequestList = new ElevatorRequestList();
     private List<Request> currentFinishedRequestList = new ArrayList<>(1024);
 
-    private ButtonList floorButtonList;
+    private ButtonList floorButtonListUp;
+    private ButtonList floorButtonListDown;
     private ButtonList elevatorButtonList = new ButtonList(Config.FLOOR_COUNT);
 
-    public Elevator(int idx, ButtonList floorButtonList) {
+    public Elevator(int idx, ButtonList floorButtonListUp, ButtonList floorButtonListDown) {
         this.idx = idx;
-        this.floorButtonList = floorButtonList;
+        this.floorButtonListUp = floorButtonListUp;
+        this.floorButtonListDown = floorButtonListDown;
     }
 
     public String toString() {
@@ -93,7 +95,12 @@ public class Elevator extends Thread {
                     System.out.println(this + " door closes. @" + Global.getRelativeTime());
                     for (Request request : currentFinishedRequestList) {
                         if (request.getType() == Request.Type.FR) {
-                            floorButtonList.lightDown(request.getFloor() - 1);
+                            if (request.getDirection() == Direction.UP) {
+                                floorButtonListUp.lightDown(request.getFloor() - 1);
+                            }
+                            if (request.getDirection() == Direction.DOWN) {
+                                floorButtonListDown.lightDown(request.getFloor() - 1);
+                            }
                         }
                     }
                     currentFinishedRequestList.clear();

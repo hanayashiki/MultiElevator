@@ -6,14 +6,17 @@ import java.util.concurrent.BlockingQueue;
 public class Scheduler extends Thread {
     private List<Elevator> elevatorList;
     private BlockingQueue<Request> requestQueue;
-    private ButtonList floorButtonList;
+    private ButtonList floorButtonListUp;
+    private ButtonList floorButtonListDown;
     private List<Request> pendingRequests = new LinkedList<>();
     private boolean inputEnd = false;
 
-    public Scheduler(List<Elevator> elevatorList, BlockingQueue<Request> requestQueue, ButtonList floorButtonList) {
+    public Scheduler(List<Elevator> elevatorList, BlockingQueue<Request> requestQueue, ButtonList floorButtonListUp,
+                     ButtonList floorButtonListDown) {
         this.elevatorList = elevatorList;
         this.requestQueue = requestQueue;
-        this.floorButtonList = floorButtonList;
+        this.floorButtonListUp = floorButtonListUp;
+        this.floorButtonListDown = floorButtonListDown;
     }
 
     public void run() {
@@ -34,10 +37,14 @@ public class Scheduler extends Thread {
                 }
                 newRequest.setVisited();
                 if (newRequest.getType() == Request.Type.FR) {
-                    System.out.println(floorButtonList);
                     if (!isSameFloorRequest(newRequest) || newRequest.isVisited()) {
                         int floor = newRequest.getFloor();
-                        floorButtonList.lightUp(floor - 1);
+                        if (newRequest.getDirection() == Direction.UP) {
+                            floorButtonListUp.lightUp(floor - 1);
+                        }
+                        if (newRequest.getDirection() == Direction.DOWN) {
+                            floorButtonListDown.lightUp(floor - 1);
+                        }
                         boolean assigned = assignFloorRequest(newRequest);
                         if (!assigned) {
                             System.out.println("Not assigned Request: " + newRequest);
@@ -61,7 +68,9 @@ public class Scheduler extends Thread {
                 }
             }
         } catch (EndOfRequestsException ee) {
-
+            for (Elevator elevator : elevatorList) {
+                elevator.notifyNoMoreRequests();
+            }
         }
     }
 
@@ -158,7 +167,7 @@ public class Scheduler extends Thread {
 
     private boolean canPickUp(Elevator elevator, Request request) {
         synchronized (elevator) {
-            if (elevator.isUnloadingMainRequest()) {
+            if (elevator.isUnloadingMainRequest() || !elevator.isIdle()) {
                 return false;
             }
             if (request.getType() == Request.Type.FR) {
@@ -196,7 +205,10 @@ public class Scheduler extends Thread {
     private boolean isSameFloorRequest(Request request) {
         assert request.getType() == Request.Type.FR;
         int floor = request.getFloor();
-        if (floorButtonList.getLightStatus(floor - 1)) {
+        if (request.getDirection() == Direction.UP && floorButtonListUp.getLightStatus(floor - 1)) {
+            return true;
+        }
+        if (request.getDirection() == Direction.DOWN && floorButtonListDown.getLightStatus(floor - 1)) {
             return true;
         }
         return false;

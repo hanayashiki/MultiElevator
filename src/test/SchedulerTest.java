@@ -12,16 +12,17 @@ import java.util.concurrent.BlockingQueue;
 
 public class SchedulerTest {
     public static void main(String args[]) throws IOException {
-        ButtonList floorButtonList = new ButtonList(Config.FLOOR_COUNT);
+        ButtonList floorButtonListUp = new ButtonList(Config.FLOOR_COUNT);
+        ButtonList floorButtonListDown = new ButtonList(Config.FLOOR_COUNT);
         List<Elevator> elevatorList = new ArrayList<>();
         for (int i = 0; i < Config.ELEVATOR_COUNT; i++) {
-            elevatorList.add(new Elevator(i + 1, floorButtonList));
+            elevatorList.add(new Elevator(i + 1, floorButtonListUp, floorButtonListDown));
         }
-        PipedInputStream pipedInputStream = TestInputter.getStream("src/test/tests/test_cannot_pick_up.txt");
+        PipedInputStream pipedInputStream = TestInputter.getStream("src/test/tests/test_up_down.txt");
         BlockingQueue<Request> requestQueue = new ArrayBlockingQueue<Request>(1024, true);
         RequestScanner requestScanner = new RequestScanner(pipedInputStream, requestQueue);
 
-        Scheduler scheduler = new Scheduler(elevatorList, requestQueue, floorButtonList);
+        Scheduler scheduler = new Scheduler(elevatorList, requestQueue, floorButtonListUp, floorButtonListDown);
         requestScanner.start();
         scheduler.start();
         for (Elevator elevator : elevatorList) {
