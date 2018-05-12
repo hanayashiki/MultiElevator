@@ -12,6 +12,7 @@ public class Request {
     private int elevatorId;
     private long timeArrive;
     private boolean end;
+
     String originString;
 
     Request() {
@@ -56,6 +57,10 @@ public class Request {
 
     public boolean isEnd() {
         return end;
+    }
+
+    public String getOriginString() {
+        return originString;
     }
 
     // type == FR

@@ -6,12 +6,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.Random;
 
 public class Scheduler extends Thread {
-    List<Elevator> elevatorList;
+    private List<Elevator> elevatorList;
     private BlockingQueue<Request> requestQueue;
+    private ButtonList floorButtonList;
 
-    public Scheduler(List<Elevator> elevatorList, BlockingQueue<Request> requestQueue) {
+    public Scheduler(List<Elevator> elevatorList, BlockingQueue<Request> requestQueue, ButtonList floorButtonList) {
         this.elevatorList = elevatorList;
         this.requestQueue = requestQueue;
+        this.floorButtonList = floorButtonList;
     }
 
     public void run() {
@@ -32,17 +34,28 @@ public class Scheduler extends Thread {
                     ie.printStackTrace();
                 }
                 if (newRequest.getType() == Request.Type.FR) {
-                    boolean assigned = asssignFloorRequest(newRequest);
-                    // TODO: pending a Request ? or not
-                    if (!assigned) {
-                        System.out.println("Not assigned Request: " + newRequest);
+                    if (!isSameFloorRequest(newRequest)) {
+                        int floor = newRequest.getFloor();
+                        floorButtonList.lightUp(floor - 1);
+                        boolean assigned = asssignFloorRequest(newRequest);
+                        // TODO: pending a Request ? or not
+                        if (!assigned) {
+                            System.out.println("Not assigned Request: " + newRequest);
+                        }
+                    } else {
+                        Output.printSame(newRequest.getOriginString(), newRequest.getTimeArrive());
                     }
                 } else {
                     int elevatorId = newRequest.getElevatorId();
                     Elevator assignee = elevatorList.get(elevatorId - 1);
                     synchronized (assignee) {
-                        System.out.println("Assigned " + newRequest + " to " + assignee + " @" + Global.getRelativeTime());
-                        assignee.pickUp(newRequest);
+                        if (!assignee.isSameElevatorRequest(newRequest)) {
+                            System.out.println("Assigned " + newRequest + " to " + assignee + " @" + Global.getRelativeTime());
+                            assignee.pickUp(newRequest);
+                            assignee.lightUpForRequest(newRequest);
+                        } else {
+                            Output.printSame(newRequest.getOriginString(), newRequest.getTimeArrive());
+                        }
                     }
                 }
             }
@@ -114,12 +127,12 @@ public class Scheduler extends Thread {
                 if (elevator.getCurrentDirection() == Direction.UP) {
                     isBetweenCurrentPositionAndTargetPosition =
                             Utils.doubleLess(elevator.getCurrentPosition(),  request.getFloor()) &&
-                            Utils.doubleLessEqual(request.getFloor(), elevator.getCurrentTarget());
+                                    Utils.doubleLessEqual(request.getFloor(), elevator.getCurrentTarget());
                 }
                 else if (elevator.getCurrentDirection() == Direction.DOWN) {
                     isBetweenCurrentPositionAndTargetPosition =
                             Utils.doubleGreater(elevator.getCurrentPosition(), request.getFloor()) &&
-                            Utils.doubleGreaterEqual(request.getFloor(), elevator.getCurrentTarget());
+                                    Utils.doubleGreaterEqual(request.getFloor(), elevator.getCurrentTarget());
                 }
                 else {
                     return false;
@@ -140,5 +153,14 @@ public class Scheduler extends Thread {
             }
             return true;
         }
+    }
+
+    private boolean isSameFloorRequest(Request request) {
+        assert request.getType() == Request.Type.FR;
+        int floor = request.getFloor();
+        if (floorButtonList.getLightStatus(floor - 1)) {
+            return true;
+        }
+        return false;
     }
 }

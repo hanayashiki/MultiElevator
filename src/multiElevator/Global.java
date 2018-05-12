@@ -10,9 +10,12 @@ public class Global {
     public static String milliTimeToSecond(long milliTime, int d) {
         nf.setMinimumFractionDigits(d);
         nf.setMaximumFractionDigits(d);
-        return nf.format(milliTime - timeZeroPoint);
+        return nf.format(1.0 * (milliTime - timeZeroPoint) / 1000);
     }
     public static long getRelativeTime() {
         return System.currentTimeMillis() - processTimeZeroPoint;
+    }
+    public static long getST() {
+        return System.currentTimeMillis() - timeZeroPoint;
     }
 }
