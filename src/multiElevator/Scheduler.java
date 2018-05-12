@@ -1,14 +1,14 @@
 package multiElevator;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
-import java.util.Random;
 
 public class Scheduler extends Thread {
     private List<Elevator> elevatorList;
     private BlockingQueue<Request> requestQueue;
     private ButtonList floorButtonList;
+    private List<Request> pendingRequests = new LinkedList<>();
+    private boolean inputEnd = false;
 
     public Scheduler(List<Elevator> elevatorList, BlockingQueue<Request> requestQueue, ButtonList floorButtonList) {
         this.elevatorList = elevatorList;
@@ -19,28 +19,29 @@ public class Scheduler extends Thread {
     public void run() {
         try {
             while (true) {
-                Request newRequest = null;
-                try {
-                    newRequest = requestQueue.take();
-                    if (newRequest.isEnd()) {
-                        for (Elevator elevator : elevatorList) {
-                            synchronized (elevator) {
-                                elevator.notifyNoMoreRequests();
-                            }
-                        }
-                        throw new EndOfRequestsException();
-                    }
-                } catch (InterruptedException ie) {
-                    ie.printStackTrace();
+                if (pendingRequests.isEmpty() && inputEnd) {
+                    throw new EndOfRequestsException();
                 }
+                Request newRequest = null;
+                newRequest = getRequestToHandle();
+                if (newRequest == null) {
+                    yield();
+                    continue;
+                }
+                if (newRequest.isEnd()) {
+                    inputEnd = true;
+                    continue;
+                }
+                newRequest.setVisited();
                 if (newRequest.getType() == Request.Type.FR) {
-                    if (!isSameFloorRequest(newRequest)) {
+                    System.out.println(floorButtonList);
+                    if (!isSameFloorRequest(newRequest) || newRequest.isVisited()) {
                         int floor = newRequest.getFloor();
                         floorButtonList.lightUp(floor - 1);
-                        boolean assigned = asssignFloorRequest(newRequest);
-                        // TODO: pending a Request ? or not
+                        boolean assigned = assignFloorRequest(newRequest);
                         if (!assigned) {
                             System.out.println("Not assigned Request: " + newRequest);
+                            pendingRequests.add(newRequest);
                         }
                     } else {
                         Output.printSame(newRequest.getOriginString(), newRequest.getTimeArrive());
@@ -64,7 +65,7 @@ public class Scheduler extends Thread {
         }
     }
 
-    private boolean asssignFloorRequest(Request newRequest) {
+    private boolean assignFloorRequest(Request newRequest) {
 //        // For test
 //        synchronized (elevatorList.get(0)) {
 //            elevatorList.get(0).pickUp(newRequest);
@@ -109,6 +110,37 @@ public class Scheduler extends Thread {
         }
     }
 
+    public boolean canAssign(Request newRequest) {
+        for (Elevator elevator : elevatorList) {
+            synchronized (elevator) {
+                if (canPickUp(elevator, newRequest) || elevator.isIdle()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Request getRequestToHandle() {
+        Request newReq = requestQueue.peek();
+        Request pendingReq = null;
+        for (Request req : pendingRequests) {
+            if (canAssign(req)) {
+                pendingRequests.remove(req);
+                return req;
+            }
+        }
+        if (newReq != null) {
+            try {
+                requestQueue.take();
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+
+        }
+        return newReq;
+    }
+
     private Elevator getElevaterOfMinTraveledDistance(List<Elevator> elevatorList) {
         boolean allEqual = true;
         Elevator elevator = elevatorList.get(0);
@@ -130,17 +162,14 @@ public class Scheduler extends Thread {
                 boolean isSameDirection = elevator.getCurrentDirection() == request.getDirection();
                 boolean isBetweenCurrentPositionAndTargetPosition;
                 if (elevator.getCurrentDirection() == Direction.UP) {
-                    System.out.println(elevator.getCurrentPosition() + ", " + request.getFloor());
                     isBetweenCurrentPositionAndTargetPosition =
-                            Utils.doubleLess(elevator.getCurrentPosition(),  request.getFloor()) &&
+                            Utils.doubleLess(elevator.getCurrentPosition(), request.getFloor()) &&
                                     Utils.doubleLessEqual(request.getFloor(), elevator.getCurrentTarget());
-                }
-                else if (elevator.getCurrentDirection() == Direction.DOWN) {
+                } else if (elevator.getCurrentDirection() == Direction.DOWN) {
                     isBetweenCurrentPositionAndTargetPosition =
                             Utils.doubleGreater(elevator.getCurrentPosition(), request.getFloor()) &&
                                     Utils.doubleGreaterEqual(request.getFloor(), elevator.getCurrentTarget());
-                }
-                else {
+                } else {
                     return false;
                 }
                 if (!isSameDirection) {

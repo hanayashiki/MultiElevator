@@ -12,11 +12,12 @@ public class Request {
     private int elevatorId;
     private long timeArrive;
     private boolean end;
+    private boolean visited = false;
 
     String originString;
 
     Request() {
-
+        this.type = Type.ER;
     }
 
     Request(Type type, int floor, Direction direction, long timeArrive, String originString) {
@@ -41,6 +42,14 @@ public class Request {
         Request endSignal = new Request();
         endSignal.end = true;
         return endSignal;
+    }
+
+    public void setVisited() {
+        visited = true;
+    }
+
+    public boolean isVisited() {
+        return visited;
     }
 
     public Type getType() {
