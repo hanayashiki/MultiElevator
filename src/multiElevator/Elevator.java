@@ -97,9 +97,21 @@ public class Elevator extends Thread {
                         }
                     }
                     currentFinishedRequestList.clear();
+                    // If finished main request
+                    int floor = (int) Math.round(this.currentPosition);
+                    if (floor == this.currentTarget && !this.elevatorRequestList.isEmpty()) {
+                        Request lastUnfinishedRequest = this.elevatorRequestList.getHead();
+                        this.setMain(lastUnfinishedRequest);
+                    }
                 }
                 break;
         }
+    }
+
+    synchronized boolean isUnloadingMainRequest() {
+        System.out.println(this.status);
+        System.out.println(this.currentPosition);
+        return this.status == Status.UNLOADING && ((int) Math.round(this.currentPosition) == this.currentTarget);
     }
 
     synchronized private void setOnArrival() {
@@ -120,10 +132,6 @@ public class Elevator extends Thread {
                     System.out.println("Finished " + request + " by " + this + " @" + Global.getRelativeTime());
                     ret = true;
                 }
-            }
-            if (floor == this.currentTarget && !this.elevatorRequestList.isEmpty()) {
-                Request lastUnfinishedRequest = this.elevatorRequestList.getHead();
-                this.setMain(lastUnfinishedRequest);
             }
         }
         return ret;

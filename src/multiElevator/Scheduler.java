@@ -158,6 +158,9 @@ public class Scheduler extends Thread {
 
     private boolean canPickUp(Elevator elevator, Request request) {
         synchronized (elevator) {
+            if (elevator.isUnloadingMainRequest()) {
+                return false;
+            }
             if (request.getType() == Request.Type.FR) {
                 boolean isSameDirection = elevator.getCurrentDirection() == request.getDirection();
                 boolean isBetweenCurrentPositionAndTargetPosition;
