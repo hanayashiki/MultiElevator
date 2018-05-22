@@ -8,6 +8,7 @@ package threadTest;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 
 public class TimeTest extends Thread {
     private int runTimeLimit = 100;
@@ -33,6 +34,8 @@ public class TimeTest extends Thread {
         }
     }
     public static void main(String args[]) {
+//        Scanner scanner = new Scanner(System.in);
+//        System.out.println(scanner.nextLine());
         for (int i = 0; i < 5; i++) {
             new TimeTest().start();
         }

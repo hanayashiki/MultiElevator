@@ -12,7 +12,7 @@ import java.util.concurrent.BlockingQueue;
 public class RequestScannerTest {
     public static void main(String args[]) throws IOException {
         BlockingQueue<Request> requestQueue = new ArrayBlockingQueue<Request>(1024, true);
-        PipedInputStream pipedInputStream = TestInputter.getStream("src/test/tests/test1.txt");
+        PipedInputStream pipedInputStream = TestInputter.getStream("src/test_wrong_el_id.txt/tests/test1.txt");
         RequestScanner requestScanner = new RequestScanner(pipedInputStream, requestQueue);
         requestScanner.start();
     }

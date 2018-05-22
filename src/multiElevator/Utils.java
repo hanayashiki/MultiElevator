@@ -1,5 +1,8 @@
 package multiElevator;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Utils {
     public static double directionToSign(Direction direction) {
         switch (direction) {
@@ -47,4 +50,5 @@ public class Utils {
         double ceil = Math.ceil(a);
         return doubleEqual(floor, a) || doubleEqual(ceil, a);
     }
+
 }

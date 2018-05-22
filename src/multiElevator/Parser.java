@@ -10,15 +10,25 @@ public class Parser {
     private static Pattern elevatorRequestPattern = Pattern.compile(elevatorRequestRegex);
 
     public static Request parse(String requestString, long arrivalTime) {
+        /*  @REQUIRES: arrivalTime == requestString.arrivalTime
+         *  @MODIFIES: None
+         *  @EFFECTS:
+         *      trimmed(requestString) == "END" ==> \result == null
+         *      valid(trimmed(requestString)) ==> \result == Request(requestString)
+         *      invalid(trimmed(requestString)) ==> exceptional_behavior(InputException(requestString))
+         */
+
         String trimmedInput = requestString.replace(" ", "");
         Matcher floorRequestMatcher = floorRequestPattern.matcher(trimmedInput);
         Matcher elevatorRequestMatcher = elevatorRequestPattern.matcher(trimmedInput);
+        boolean FRMatches = floorRequestMatcher.matches();
+        boolean ERMatches = elevatorRequestMatcher.matches();
 
         if (trimmedInput.equals("END")) {
             return null;
         }
 
-        if (!floorRequestMatcher.matches() && !elevatorRequestMatcher.matches()) {
+        if (!FRMatches && !ERMatches) {
             throw new InputException(requestString);
         }
 
@@ -26,7 +36,7 @@ public class Parser {
 
         try {
 
-            if (floorRequestMatcher.matches()) {
+            if (FRMatches) {
                 int callingFloor = parseInt(floorRequestMatcher.group(1));
                 Direction direction = Direction.UP;
                 String directionString = floorRequestMatcher.group(2);
@@ -41,7 +51,7 @@ public class Parser {
 
             }
 
-            if (elevatorRequestMatcher.matches()) {
+            if (ERMatches) {
                 int elevatorId = parseInt(elevatorRequestMatcher.group(1));
                 int targetFloor = parseInt(elevatorRequestMatcher.group(2));
 
@@ -64,6 +74,22 @@ public class Parser {
     }
 
     private static boolean checkSemantics(Request newRequest) {
+        /*  @REQUIRES: isSyntaticallyCorrect(newRequest)
+        *   @MODIFIES: None
+        *   @EFFECTS:
+        *       P = (newRequest.getType() == Request.Type.FR && (newRequest.getCallingFloor() < Config.MIN_FLOOR ||
+        *       newRequest.getCallingFloor() > Config.MAX_FLOOR ||
+        *       newRequest.getCallingFloor() == Config.MIN_FLOOR && newRequest.getDirection() == Direction.DOWN) ||
+        *       newRequest.getCallingFloor() == Config.MAX_FLOOR && newRequest.getDirection() == Direction.UP)) )
+        *       ==> \result == false
+        *
+        *       Q = (newRequest.getType() == Request.Type.ER && (newRequest.getElevatorId() < Config.MIN_ELEVATOR_ID ||
+        *       newRequest.getElevatorId() > Config.MAX_ELEVATOR_ID || newRequest.getTargetFloor() < Config.MIN_FLOOR ||
+        *       newRequest.getTargetFloor() > Config.MAX_FLOOR))
+        *       ==> \result == false
+        *
+        *       !P && !Q ==> \result == true
+        * */
         if (newRequest.getType() == Request.Type.FR) {
             if (newRequest.getCallingFloor() < Config.MIN_FLOOR || newRequest.getCallingFloor() > Config.MAX_FLOOR) {
                 return false;

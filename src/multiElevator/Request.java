@@ -1,6 +1,10 @@
 package multiElevator;
 
 public class Request {
+    /*
+    *   @OVERVIEW: 不可变类，用于记录 Request 的信息
+    *
+    * */
     enum Type {
         FR, ER
     }
@@ -25,7 +29,7 @@ public class Request {
         this.type = type;
         this.floor = floor;
         this.direction = direction;
-        this.timeArrive = timeArrive;
+        this.timeArrive = timeArrive;      // 到达时的 System.currentTimeMillis()
         this.originString = originString;
     }
 
@@ -98,15 +102,7 @@ public class Request {
 
     @Override
     public String toString() {
-        if (type == Type.FR) {
-            return "{ type: FR, " + "callingFloor: " + getCallingFloor() + ", " +
-                    "direction: " + getDirection() + ", " + "timeArrive: " + getTimeArrive() + " }";
-        }
-        if (type == Type.ER) {
-            return "{ type: ER, " + "elevatorId: " + getElevatorId() + ", " +
-                    "targetFloor: " + getTargetFloor() + ", " + "timeArrive: " + getTimeArrive() + " }";
-        }
-        return "Untyped";
+        return this.getOriginString().trim();
     }
 
 }
